@@ -1,0 +1,206 @@
+import pandas as pd
+star_wars = pd.read_csv("star_wars.csv", encoding="ISO-8859-1")
+
+#scan of the data
+print(star_wars.head(10))
+print(star_wars.columns.tolist())
+
+# data clean 1 "RespondentID" invalid value remove
+
+#star_wars = star_wars.dropna(subset=["RespondentID"])
+star_wars = star_wars[star_wars["RespondentID"].notnull()]
+#star_wars = star_wars[pd.notnull(star_wars["RespondentID"])]
+#print(star_wars)
+
+#unique value convert
+print(star_wars['Have you seen any of the 6 films in the Star Wars franchise?'].value_counts())
+print(star_wars['Which of the following Star Wars films have you seen? Please select all that apply.'].value_counts())
+yes_no_haveyou = {
+    "Yes":True,
+    "No": False
+}
+yes_no_whichof = {
+    "Star Wars: Episode I  The Phantom Menace":True,
+    "NaN": False
+}
+yes_no_4 = {
+    "Star Wars: Episode II  Attack of the Clones":True,
+    "NaN": False
+}
+yes_no_5 = {
+    "Star Wars: Episode III  Revenge of the Sith":True,
+    "NaN": False
+}
+yes_no_6 = {
+    "Star Wars: Episode IV  A New Hope":True,
+    "NaN": False
+}
+yes_no_7 = {
+    "Star Wars: Episode V The Empire Strikes Back":True,
+    "NaN": False
+}
+yes_no_8 = {
+    "Star Wars: Episode VI Return of the Jedi":True,
+    "NaN": False
+}
+star_wars['Have you seen any of the 6 films in the Star Wars franchise?']=star_wars['Have you\
+ seen any of the 6 films in the Star Wars franchise?'].map(yes_no_haveyou)
+star_wars['Which of the following Star Wars films have you seen?\
+ Please select all that apply.']=star_wars['Which of the following Star Wars films have you seen?\
+ Please select all that apply.'].map(yes_no_whichof)
+star_wars["Unnamed: 4"] = star_wars["Unnamed: 4"].map(yes_no_4)
+star_wars["Unnamed: 5"] = star_wars["Unnamed: 5"].map(yes_no_5)
+star_wars["Unnamed: 6"] = star_wars["Unnamed: 6"].map(yes_no_6)
+star_wars["Unnamed: 7"] = star_wars["Unnamed: 7"].map(yes_no_7)
+star_wars["Unnamed: 8"] = star_wars["Unnamed: 8"].map(yes_no_8)
+#print(star_wars['Have you seen any of the 6 films in the Star Wars franchise?'])
+
+#Through the solution, there is more sufficient way to do this
+#movie_mapping = {
+    #"Star Wars: Episode I  The Phantom Menace": True,
+    #np.nan: False,
+    #"Star Wars: Episode II  Attack of the Clones": True,
+    #"Star Wars: Episode III  Revenge of the Sith": True,
+    #"Star Wars: Episode IV  A New Hope": True,
+    #"Star Wars: Episode V The Empire Strikes Back": True,
+    #"Star Wars: Episode VI Return of the Jedi": True
+#}
+
+#for col in star_wars.columns[3:9]:
+    #star_wars[col] = star_wars[col].map(movie_mapping)
+    
+#columns rename
+star_wars = star_wars.rename(columns={"Which of the following Star Wars films have you seen?\
+ Please select all that apply.":"seen_1",
+                                     "Unnamed: 4":"seen_2",
+                                     "Unnamed: 5":"seen_3",
+                                     "Unnamed: 6":"seen_4",
+                                     "Unnamed: 7":"seen_5",
+                                     "Unnamed: 8":"seen_6"})
+#print(star_wars.columns)
+
+star_wars[star_wars.columns[9:15]] = star_wars[star_wars.columns[9:15]].astype(float)
+
+star_wars = star_wars.rename(columns={"Please rank the Star Wars films in\
+ order of preference with 1 being your favorite film in the franchise and 6\
+ being your least favorite film.":"rank_1",
+                                     "Unnamed: 10":"rank_2",
+                                     "Unnamed: 11":"rank_3",
+                                     "Unnamed: 12":"rank_4",
+                                     "Unnamed: 13":"rank_5",
+                                     "Unnamed: 14":"rank_6"})
+                                     
+rankmeans=star_wars[["rank_1","rank_2","rank_3","rank_4","rank_5","rank_6"]].mean(index=0)
+stds = star_wars[["rank_1","rank_2","rank_3","rank_4","rank_5","rank_6"]].std()
+views = star_wars[["seen_1","seen_2","seen_3","seen_4","seen_5","seen_6"]].sum()
+
+#plot scores
+import numpy as np
+import matplotlib.pyplot as plt
+%matplotlib inline
+N = 6
+ind = np.arange(N)  # the x locations for the groups
+width = 0.35       # the width of the bars
+
+fig, ax = plt.subplots()
+rects1 = ax.bar(ind, rankmeans, width,yerr=stds,color="g")
+
+ax.set_ylabel('Scores')
+ax.set_title('Ranking scores')
+ax.set_xticklabels(('Episode I', 'Episode II', 'Episode III', 'Episode IV', 'Episode V',"Episode VI"))
+fig, ax = plt.subplots()
+rects2 = ax.bar(ind , views, width, color='y')
+ax.set_ylabel('Number of audiens')
+ax.set_title('Most seen movie')
+ax.set_xticklabels(('Episode I', 'Episode II', 'Episode III', 'Episode IV', 'Episode V',"Episode VI"))
+plt.show()
+
+#two groups splitted
+stfans = star_wars[star_wars["Do you consider yourself to be a fan of the Star Trek franchise?"]=="Yes"]
+stafans = star_wars[star_wars["Do you consider yourself to be a fan of the Star Trek franchise?"]=="No"]
+
+rankmeans_yes=stfans[["rank_1","rank_2","rank_3","rank_4","rank_5","rank_6"]].mean(index=0)
+stds_yes = stfans[["rank_1","rank_2","rank_3","rank_4","rank_5","rank_6"]].std()
+views_yes = stfans[["seen_1","seen_2","seen_3","seen_4","seen_5","seen_6"]].sum()
+
+rankmeans_no=stafans[["rank_1","rank_2","rank_3","rank_4","rank_5","rank_6"]].mean(index=0)
+stds_no = stafans[["rank_1","rank_2","rank_3","rank_4","rank_5","rank_6"]].std()
+views_no = stafans[["seen_1","seen_2","seen_3","seen_4","seen_5","seen_6"]].sum()
+
+#plot two groups by Star Trek franchise or not
+N = 6
+ind = np.arange(N)  # the x locations for the groups
+width = 0.35       # the width of the bars
+
+fig, ax = plt.subplots()
+rects1 = ax.bar(ind, rankmeans_yes, width, yerr=stds_yes, color="g")
+ax.set_ylabel('Scores ')
+ax.set_title('Ranking scores of Star Trek franchises')
+ax.set_xticklabels(('Episode I', 'Episode II', 'Episode III', 'Episode IV', 'Episode V',"Episode VI"))
+
+fig, ax = plt.subplots()
+rects2 = ax.bar(ind , views_yes, width, color='y')
+ax.set_ylabel('Number of audiens')
+ax.set_title('Most seen movie of Star Trek franchises')
+ax.set_xticklabels(('Episode I', 'Episode II', 'Episode III', 'Episode IV', 'Episode V',"Episode VI"))
+
+
+fig, ax = plt.subplots()
+rects1 = ax.bar(ind, rankmeans_no, width, yerr=stds_no, color="g")
+ax.set_ylabel('Scores')
+ax.set_title('Ranking scores of not Star Trek franchises')
+ax.set_xticklabels(('Episode I', 'Episode II', 'Episode III', 'Episode IV', 'Episode V',"Episode VI"))
+
+fig, ax = plt.subplots()
+rects2 = ax.bar(ind , views_no, width, color='y')
+ax.set_ylabel('Number of audiens')
+ax.set_title('Most seen movie not Star Trek franchises')
+ax.set_xticklabels(('Episode I', 'Episode II', 'Episode III', 'Episode IV', 'Episode V',"Episode VI"))
+plt.show()
+
+#both franchises and not franchises have similar score rating for the Star wars trek
+
+# some fun
+print(star_wars['Education'].value_counts())
+print(star_wars['Location (Census Region)'].value_counts())
+print(star_wars['Which character shot first?'].value_counts())
+#Segementation through education level
+education_value = star_wars['Education'].value_counts().index
+
+def segmentation(indexvalues):
+    conseg ={}
+    for con in indexvalues:
+        conseg[con] = star_wars[star_wars['Education']==con]
+    return conseg
+#print(segmentation(education_value))
+
+colvalue={}
+#print(star_wars[star_wars.columns[29]])
+colsnames=star_wars.columns[15:29]
+for name in colsnames:
+    colvalue[name]=star_wars[name].value_counts()
+#print(colvalue["Unnamed: 16"])
+#print(colvalue["Unnamed: 22"])
+#The values of 15:29 are 6 choices selection
+
+#plot most liked and disliked character
+#most_like={}
+m_like=[]
+for name in colsnames:
+    #most_like[name]= len(star_wars[star_wars[name]=="Very favorably"])
+    m_like.append(len(star_wars[star_wars[name]=="Very favorably"]))
+#print(m_like)
+
+#most_dislike={}
+m_dislike=[]
+for name in colsnames:
+    #most_dislike[name]= len(star_wars[star_wars[name]=="Very unfavorably"])
+    m_dislike.append(len(star_wars[star_wars[name]=="Very unfavorably"]))
+#print(m_dislike)
+likeness=[[m_like,m_dislike]]
+plt.scatter(range(14),m_like,color='g')
+plt.scatter(range(14),m_dislike,color='y')
+plt.title("Most liked and disliked character")
+plt.xlabel("Characters")
+plt.ylabel("Votes for characters")
+plt.show()

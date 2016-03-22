@@ -1,2 +1,4 @@
 # DQ_the_star_war_survey
-First repository
+My First repository
+
+The project from DataQuest Star Wars Survey
